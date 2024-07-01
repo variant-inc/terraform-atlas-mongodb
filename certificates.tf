@@ -26,33 +26,19 @@ resource "tls_self_signed_cert" "cert" {
   ]
 }
 
-resource "kubernetes_secret" "tls_secret" {
-  metadata {
-    name      = "tls-certificate-${var.project}"
-    namespace = "cert-manager"
-  }
-
-  type = "kubernetes.io/tls"
-
-  data = {
-    "ca.crt"  = tls_self_signed_cert.cert.cert_pem,
-    "tls.key" = tls_private_key.ca_certificate.private_key_pem,
-    "tls.crt" = tls_self_signed_cert.cert.cert_pem
-  }
+resource "aws_secretsmanager_secret" "secret" {
+  #checkov:skip=CKV2_AWS_57:Ensure Secrets Manager secrets should have automatic rotation enabled
+  name       = "${var.project}-${var.name}"
+  kms_key_id = var.kms_key_id
 }
 
-resource "kubernetes_manifest" "clusterissuer" {
-  manifest = {
-    "apiVersion" = "cert-manager.io/v1"
-    "kind"       = "ClusterIssuer"
-    "metadata" = {
-      "name" = var.project
+resource "aws_secretsmanager_secret_version" "secret_val" {
+  secret_id = aws_secretsmanager_secret.secret.id
+  secret_string = jsonencode(
+    {
+      "ca.crt"  = tls_self_signed_cert.cert.cert_pem
+      "tls.key" = tls_private_key.ca_certificate.private_key_pem
+      "tls.crt" = tls_self_signed_cert.cert.cert_pem
     }
-    "spec" = {
-      ca = {
-        secretName = kubernetes_secret.tls_secret.metadata[0].name
-      }
-    }
-  }
-  depends_on = [kubernetes_secret.tls_secret]
+  )
 }

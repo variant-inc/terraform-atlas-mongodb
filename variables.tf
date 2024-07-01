@@ -105,3 +105,8 @@ variable "ip_access_list" {
   description = "List of IP addresses or CIDR blocks allowed to access the MongoDB Atlas cluster"
   default     = ["10.0.0.0/8", "172.17.0.0/16", "192.168.0.0/16"]
 }
+
+variable "kms_key_id" {
+  type        = string
+  description = "The ID of the AWS KMS key used to encrypt secrets managed by Secrets Manager."
+}
