@@ -95,11 +95,6 @@ variable "node_count" {
   default     = 3
 }
 
-variable "eks_cluster_name" {
-  type        = string
-  description = "Name of EKS Cluster name"
-}
-
 variable "ip_access_list" {
   type        = list(string)
   description = "List of IP addresses or CIDR blocks allowed to access the MongoDB Atlas cluster"
